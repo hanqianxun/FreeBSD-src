@@ -640,6 +640,14 @@ struct pf_rule {
 	uint64_t		 u_states_cur;
 	uint64_t		 u_states_tot;
 	uint64_t		 u_src_nodes;
+
+	struct {
+		u_int8_t 	dpiproto;
+		u_int8_t 	dpitype;
+		u_int8_t 	dpifunction;
+		u_int8_t	dpiaddress;
+		u_int8_t	dpiquantity;
+	}			dpi;
 };
 
 /* rule flags */

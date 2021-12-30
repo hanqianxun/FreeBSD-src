@@ -447,6 +447,13 @@ typedef struct {
 		struct node_hfsc_opts	 hfsc_opts;
 		struct node_fairq_opts	 fairq_opts;
 		struct codel_opts	 codel_opts;
+		struct {
+			u_int8_t 	dpiproto;
+			u_int8_t 	dpitype;
+			u_int8_t 	dpifunction;
+			u_int8_t	dpiaddress;
+			u_int8_t	dpiquantity;
+		}	dpi;
 	} v;
 	int lineno;
 } YYSTYPE;
@@ -533,6 +540,8 @@ int	parseport(char *, struct range *r, int);
 %type	<v.pool_opts>		pool_opts pool_opt pool_opts_l
 %type	<v.tagged>		tagged
 %type	<v.rtableid>		rtable
+%token	DPI DPIALL DPIREAD DPIWRITE DPIMODBUS
+%type   <v.dpi>			dpi
 %%
 
 ruleset		: /* empty */
@@ -2027,7 +2036,7 @@ qassign_item	: STRING			{
 		;
 
 pfrule		: action dir logquick interface route af proto fromto
-		    filter_opts
+		    filter_opts dpi
 		{
 			struct pf_rule		 r;
 			struct node_state_opt	*o;
@@ -2151,6 +2160,12 @@ pfrule		: action dir logquick interface route af proto fromto
 				o = keep_state_defaults;
 				defaults = 1;
 			}
+
+			r.dpi.dpiproto = $10.dpiproto;
+			r.dpi.dpitype = $10.dpitype;
+			r.dpi.dpifunction = $10.dpifunction;
+			r.dpi.dpiaddress = $10.dpiaddress;
+			r.dpi.dpiquantity = $10.dpiquantity;
 
 			while (o) {
 				struct node_state_opt	*p = o;
@@ -2484,6 +2499,48 @@ filter_opts	:	{
 			filter_opts.rtableid = -1;
 			$$ = filter_opts;
 		}
+		;
+
+dpi		: /* empty */			{ $$.dpiproto = 0; }
+		| DPIALL				{ $$.dpiproto = 0; }
+		| DPIMODBUS DPIALL 	{ $$.dpiproto = 1; 
+								  $$.dpitype = 0;	
+								}
+		| DPIMODBUS string DPIALL 	
+		  { 
+		    if(strncmp($2, "read", 4) == 0)
+			{
+				$$.dpiproto = 1;
+				$$.dpitype = 1;
+				$$.dpifunction = 0;
+			}
+		    else if(strncmp($2, "write", 5) == 0)
+			{
+				$$.dpiproto = 1;
+				$$.dpitype = 2;
+				$$.dpifunction = 0;
+			}
+		  }
+		| DPIMODBUS string number number number  
+		  { 
+		  	if(strncmp($2, "read", 4) == 0)
+			{
+		  		$$.dpiproto = 1;
+				$$.dpitype = 2;
+				$$.dpifunction = $3;
+				$$.dpiaddress = $4;
+				$$.dpiquantity = $5;
+			}
+			else if(strncmp($2, "write", 5) == 0)
+			{
+		  		$$.dpiproto = 1;
+				$$.dpitype = 2;
+				$$.dpifunction = $3;
+				$$.dpiaddress = $4;
+				$$.dpiquantity = $5;
+	
+			}
+		  }
 		;
 
 filter_opts_l	: filter_opts_l filter_opt
@@ -5653,6 +5710,11 @@ lookup(char *s)
 		{ "divert-to",		DIVERTTO},
 		{ "dnpipe",		DNPIPE},
 		{ "dnqueue",		DNQUEUE},
+		{ "dpi", 			DPI},
+		{ "dpiall",			DPIALL},
+		{ "dpimodbus", 		DPIMODBUS},
+		{ "dpiread", 			DPIREAD},
+		{ "dpiwrite", 			DPIWRITE},
 		{ "drop",		DROP},
 		{ "drop-ovl",		FRAGDROP},
 		{ "dscp",		DSCP},
