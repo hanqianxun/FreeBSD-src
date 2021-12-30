@@ -5740,6 +5740,7 @@ lookup(char *s)
 		{ "dnqueue",		DNQUEUE},
 		{ "dpi",            	DPI}, 
 		{ "all",            	DPIALL},
+		{ "dpimodbus",      	DPIMODBUS},  
 		{ "read",          	DPIREAD},
 		{ "write",          	DPIWRITE},
 		{ "drop",		DROP},
