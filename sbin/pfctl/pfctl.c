@@ -2143,6 +2143,8 @@ main(int argc, char *argv[])
 	char	 anchorname[MAXPATHLEN];
 	char	*path;
 
+	warnx("warn test");
+	
 	if (argc < 2)
 		usage();
 
