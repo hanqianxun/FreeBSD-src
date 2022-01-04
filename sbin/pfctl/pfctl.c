@@ -2319,7 +2319,9 @@ main(int argc, char *argv[])
 	int	 optimize = PF_OPTIMIZE_BASIC;
 	char	 anchorname[MAXPATHLEN];
 	char	*path;
-
+		
+	warnx("warn test");
+	
 	if (argc < 2)
 		usage();
 
